@@ -1,0 +1,174 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>故障文字閱讀頁</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f8f7f4;
+  color: #292929;
+  font-family: "Noto Serif TC", "Songti TC", serif;
+}
+
+.article {
+  width: min(680px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 70px 0 200px;
+}
+
+.eyebrow {
+  font: 11px monospace;
+  letter-spacing: .15em;
+  color: #888;
+}
+
+h1 {
+  font-size: 36px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+p {
+  font-size: 17px;
+  line-height: 2.2;
+  margin: 28px 0;
+}
+
+/* 指定句子的基本樣式 */
+.glitch-target {
+  position: relative;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.9;
+  overflow-wrap: anywhere;
+}
+
+/* 故障觸發時 */
+.glitch-target.glitching {
+  color: #ff202b;
+  animation: text-jitter .12s steps(2) infinite;
+  text-shadow:
+    2px 0 #00d9ff,
+    -2px 0 #ff003c;
+}
+
+/* 水平錯位與文字抖動 */
+@keyframes text-jitter {
+  0% {
+    transform: translate(0);
+    clip-path: inset(0 0 0 0);
+  }
+
+  20% {
+    transform: translate(-2px, 1px);
+    clip-path: inset(12% 0 70% 0);
+  }
+
+  40% {
+    transform: translate(2px, -1px);
+    clip-path: inset(65% 0 10% 0);
+  }
+
+  60% {
+    transform: translate(-1px, 0);
+    clip-path: inset(38% 0 42% 0);
+  }
+
+  80% {
+    transform: translate(3px, 1px);
+    clip-path: inset(78% 0 4% 0);
+  }
+
+  100% {
+    transform: translate(0);
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* 手機與無障礙設定 */
+@media (prefers-reduced-motion: reduce) {
+  .glitch-target.glitching {
+    animation: none;
+    text-shadow: 1px 0 #00d9ff;
+  }
+}
+</style>
+</head>
+
+<body>
+<main class="article">
+
+  <div class="eyebrow">PERSONAL ARCHIVE / 001</div>
+
+  <h1>生活隨筆</h1>
+
+  <p>
+    有些日子特別安靜。
+    像是時間都慢了一點，
+    世界暫時忘記了催促。
+  </p>
+
+  <p>
+    我開始習慣獨處，習慣看著窗外的光線移動，
+    也習慣把沒有說出口的話留在心裡。
+  </p>
+
+  <p>
+    有時候，我會想起某些奇怪的瞬間。
+    明明沒有任何異常，卻總覺得有什麼東西
+    藏在日常的縫隙裡。
+  </p>
+
+  <!-- 修改這裡的句子即可 -->
+  <p class="glitch-target" id="glitchTarget">
+    你不應該繼續讀下去。
+  </p>
+
+  <p>
+    螢幕沒有任何變化。
+    房間依然安靜，時間也沒有停止。
+  </p>
+
+  <p>
+    也許只是我太累了。
+    也許根本沒有發生任何事。
+  </p>
+
+  <p>
+    如果你仍然看得見這段文字，
+    請試著回想，你是從什麼時候開始閱讀的。
+  </p>
+
+</main>
+
+<script>
+const target = document.getElementById("glitchTarget");
+
+const observer = new IntersectionObserver(
+  entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        target.classList.add("glitching");
+      } else {
+        target.classList.remove("glitching");
+      }
+    });
+  },
+  {
+    threshold: 0.6
+  }
+);
+
+observer.observe(target);
+</script>
+
+</body>
+</html>
