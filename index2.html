@@ -1,0 +1,712 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f4f0e8">
+  <title>Who's Stage?</title>
+
+  <style>
+    :root {
+      --paper: #f4f0e8;
+      --ink: #27231f;
+      --muted: #81786e;
+      --red: #ff102b;
+      --page-width: 680px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--paper);
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family:
+        "Noto Serif TC",
+        "Songti TC",
+        "PMingLiU",
+        serif;
+      line-height: 2.2;
+      letter-spacing: 0.045em;
+      transition: background 0.5s ease;
+    }
+
+    ::selection {
+      color: white;
+      background: #b51d29;
+    }
+
+    /* 頂部閱讀進度 */
+
+    .progress-track {
+      position: fixed;
+      z-index: 20;
+      inset: 0 0 auto;
+      height: 2px;
+      background: transparent;
+    }
+
+    #progress-bar {
+      width: 0;
+      height: 100%;
+      background: #9f2028;
+      transition: width 0.1s linear;
+    }
+
+    /* 頁首 */
+
+    .masthead {
+      width: min(100% - 48px, var(--page-width));
+      margin: 0 auto;
+      padding: 42px 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #d8d0c5;
+      color: var(--muted);
+      font-family: sans-serif;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+    }
+
+    .masthead .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 5px;
+      height: 5px;
+      background: #8b887d;
+      border-radius: 50%;
+    }
+
+    /* 閱讀區 */
+
+    main {
+      width: min(100% - 48px, var(--page-width));
+      margin: 0 auto;
+    }
+
+    .chapter {
+      padding: 90px 0 35px;
+    }
+
+    .eyebrow {
+      color: #8f332f;
+      font-family: sans-serif;
+      font-size: 10px;
+      letter-spacing: 0.3em;
+    }
+
+    h1 {
+      margin: 24px 0 18px;
+      font-size: clamp(30px, 6vw, 46px);
+      line-height: 1.55;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 0.12em;
+    }
+
+    .divider {
+      width: 30px;
+      height: 1px;
+      margin: 42px 0;
+      background: #9f3934;
+    }
+
+    .story p {
+      margin: 0 0 2em;
+      font-size: 16px;
+      line-height: 2.45;
+      text-align: justify;
+      text-indent: 2em;
+    }
+
+    .story .no-indent {
+      text-indent: 0;
+    }
+
+    .pause {
+      margin: 70px 0;
+      color: #a59b8e;
+      text-align: center;
+      letter-spacing: 0.7em;
+      font-size: 12px;
+    }
+
+    /* 觸發句 */
+
+    #trigger {
+      position: relative;
+      margin: 110px 0;
+      padding: 26px 20px;
+      border-left: 1px solid #9f3934;
+      color: #4a2726;
+      font-size: 19px;
+      line-height: 2;
+      text-indent: 0;
+      transition: color 0.4s ease;
+    }
+
+    #trigger small {
+      display: block;
+      margin-bottom: 14px;
+      color: #9f3934;
+      font-family: sans-serif;
+      font-size: 9px;
+      letter-spacing: 0.24em;
+    }
+
+    .afterword {
+      padding: 40px 0 120px;
+    }
+
+    .afterword p {
+      color: #595148;
+    }
+
+    footer {
+      padding: 28px 0 50px;
+      border-top: 1px solid #d8d0c5;
+      color: var(--muted);
+      font-family: sans-serif;
+      font-size: 10px;
+      line-height: 1.8;
+      letter-spacing: 0.15em;
+    }
+
+    /* 全螢幕異變層 */
+
+    #horror {
+      --power: 0;
+      position: fixed;
+      z-index: 100;
+      inset: 0;
+      overflow: hidden;
+      isolation: isolate;
+      background: rgba(15, 0, 3, 0);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition:
+        opacity 0.35s ease,
+        visibility 0.35s ease,
+        background 0.3s ease;
+    }
+
+    #horror.active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      background: rgba(15, 0, 3, calc(var(--power) * 0.96));
+    }
+
+    #horror::before {
+      content: "";
+      position: absolute;
+      z-index: 2;
+      inset: 0;
+      pointer-events: none;
+      opacity: calc(var(--power) * 0.55);
+      background:
+        linear-gradient(
+          0deg,
+          transparent 49%,
+          rgba(255, 0, 35, 0.18) 50%,
+          transparent 51%
+        );
+      background-size: 100% 5px;
+      mix-blend-mode: screen;
+    }
+
+    #horror::after {
+      content: "";
+      position: absolute;
+      z-index: 3;
+      inset: 0;
+      pointer-events: none;
+      opacity: calc(var(--power) * 0.45);
+      background:
+        linear-gradient(
+          90deg,
+          transparent 0%,
+          rgba(255, 0, 30, 0.1) 48%,
+          transparent 52%
+        );
+      transform: translateX(calc(var(--power) * 12px));
+    }
+
+    #words {
+      position: absolute;
+      inset: -8%;
+      overflow: hidden;
+    }
+
+    .word {
+      position: absolute;
+      display: block;
+      max-width: 100vw;
+      color: var(--red);
+      font-family:
+        "Noto Sans TC",
+        "Microsoft JhengHei",
+        sans-serif;
+      font-weight: 900;
+      line-height: 1.15;
+      white-space: nowrap;
+      user-select: none;
+      opacity: 0;
+      text-shadow:
+        2px 0 rgba(255, 0, 0, 0.4),
+        -2px 0 rgba(255, 80, 80, 0.3);
+      transform-origin: center;
+      will-change: opacity, transform;
+    }
+
+    /* 靜態故障殘影，不做閃爍 */
+
+    .word::after {
+      content: attr(data-text);
+      position: absolute;
+      inset: 0;
+      color: #ff8994;
+      clip-path: inset(43% 0 35% 0);
+      transform: translate(
+        calc(var(--power) * 5px),
+        calc(var(--power) * -2px)
+      );
+      opacity: calc(0.2 + var(--power) * 0.65);
+      pointer-events: none;
+    }
+
+    .word.visible {
+      opacity: var(--word-opacity, 0.9);
+    }
+
+    #horror.active .word.visible {
+      text-shadow:
+        calc(var(--power) * 5px) 0 rgba(255, 0, 35, 0.7),
+        calc(var(--power) * -3px) 0 rgba(255, 100, 100, 0.35);
+    }
+
+    /* 操作按鈕 */
+
+    .control {
+      position: absolute;
+      z-index: 10;
+      right: 22px;
+      bottom: 22px;
+      padding: 12px 16px;
+      border: 1px solid rgba(255, 40, 60, 0.55);
+      color: #ff8793;
+      background: rgba(12, 0, 2, 0.85);
+      font-family: sans-serif;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .control:hover {
+      color: white;
+      background: #9f001b;
+    }
+
+    #reopen {
+      position: fixed;
+      z-index: 50;
+      right: 18px;
+      bottom: 18px;
+      display: none;
+      padding: 11px 14px;
+      border: 1px solid #9f3934;
+      color: #9f3934;
+      background: var(--paper);
+      font-family: sans-serif;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+    }
+
+    #reopen.show {
+      display: block;
+    }
+
+    /* 小螢幕 */
+
+    @media (max-width: 600px) {
+      .masthead {
+        width: calc(100% - 36px);
+        padding-top: 28px;
+      }
+
+      main {
+        width: calc(100% - 44px);
+      }
+
+      .chapter {
+        padding-top: 65px;
+      }
+
+      .story p {
+        font-size: 15px;
+        line-height: 2.3;
+      }
+
+      #trigger {
+        margin: 80px 0;
+        padding-left: 16px;
+        font-size: 17px;
+      }
+
+      .control {
+        right: 12px;
+        bottom: 12px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="progress-track" aria-hidden="true">
+    <div id="progress-bar"></div>
+  </div>
+
+  <header class="masthead">
+    <span>ARCHIVE NO. 017</span>
+    <span class="status">
+      <span class="status-dot"></span>
+      <span id="status-text">READING MODE</span>
+    </span>
+  </header>
+
+  <main>
+    <header class="chapter">
+      <div class="eyebrow">短篇小說・異常紀錄</div>
+      <h1>紅色正在閱讀你</h1>
+      <div class="subtitle">有些文字，不應該被讀完。</div>
+      <div class="divider"></div>
+    </header>
+
+    <article class="story">
+      <p class="no-indent">
+        「下一個！下一個！把拔，偶要企坐那個！」
+        「『我』，還有『去』。」
+        「偶！企！」
+        「哈哈，這兩個字的發音對你來說還是太難了嗎？」
+      </p>
+
+      <p>
+        握著的小手正帶著他前後搖晃，他可以看到孩子的另一隻手直直的指向了前方。或許是因為沒有力氣支撐住手，讓手固定在一個位子上，那隻短短胖胖的手隨著他們前進的步伐好像一直不斷的轉換目標。但是那為了裝出嚴肅的樣子而皺起的眉頭，還有與自己相似的灰色雙眼中飽含的堅定，讓艾斯本知道自己正牽著的孩子有一個明確的目標。
+      </p>
+
+      <p>
+        笑著與孩子同行，他的孩子雖然平時也都是很開朗的樣子，但是興致高昂成這樣，或許是這五年來他第一次看見。在此之前已經有坐過了無數個遊樂設施，當時的艾斯本還有點猶豫，究竟是要說好險他把孩子養得很好，他和孩子的媽媽基因也都不錯，所以讓這孩子有可以達到搭乘各個遊樂設施的身高，藉此機會玩個盡興，還是該說都怪他把孩子養得那麼好，讓孩子的身高超過了這個遊樂設施的最低限制，所以他在無奈之下被迫也跟著被固定在位子上，不是從高空掉落，就是來個三百六十度的旋轉，讓他現在覺得世界好像都還在轉圈一樣。
+      </p>
+
+      <p>
+        真的有那麼一瞬間，艾斯本覺得自己都要吐出來了。可是看到孩子哈哈大笑的表情，他還是把那些反胃感吞了回去，用跟以往一樣的溫和笑容，試圖矯正那稚嫩的童音發出的不標準發音。雖然他也知道最終會白費力氣，但他還是希望自己可以在這種時候，也陪伴著孩子成長。雖然那個剛才還很堅定的孩子，再看到其他東西的時候，還是立刻就偏離了剛才的路線，甚至是開始跟旁邊的人炫耀，今天是他爸爸帶他出來玩的這件事情。
+      </p>
+
+      <p>
+        看著孩子挺起胸膛，用少得可憐的詞彙量，努力想要組織出一段讚揚自己父親的演說，艾斯本只是笑著搖了搖頭，然後把孩子抱了起來。五歲的孩子已經有了些重量，雖然還沒有到會很吃力的地步，但是抱起來就會知道，跟過去不一樣，需要多花點力氣。這明明是該值得開心的事情，畢竟這代表著孩子的成長。但同時，他也感到惆悵，因為他知道可以像這樣抱著孩子的時間或許已經不多了。
+      </p>
+
+      <p>
+        望向被自己抱著的孩子，注意到孩子抬起手來的瞬間，艾斯本立刻壓下了孩子的手。
+      </p>
+
+      <p>
+        「不可以喔，我們約好了，不可以揉眼睛。」
+        「但素⋯⋯」
+        「沒有但是。」
+        「把拔⋯⋯」
+        「不行喔，這樣眼睛之後會痛痛，我說過很多次了吧。」
+
+      </p>
+
+      <p>
+        「想睡覺了吧？我們坐下來休息一下吧。」
+        「但素還有很多沒有玩到的⋯⋯」
+        「遊樂設施不會長腳，而且你要乖乖休息，等等才有力氣繼續玩啊。」
+      </p>
+
+      <p>
+        邊說邊抱著孩子，在一旁的長椅坐了下來。艾斯本輕拍著孩子的被，低聲哼著孩子最喜歡的搖籃曲。在熱鬧吵雜的遊樂園裡，他和孩子坐著的那張長椅彷彿變成了另一個世界。艾斯本可以聽到孩子的呼吸聲變得逐漸平穩及規律，而終於得以喘口氣的他，也開始感覺到眼皮變得沉重。一下下也沒關係吧，他心想，然後閉上了眼。
+      </p>
+
+      <div class="pause">＊　＊　＊</div>
+      
+      <p>
+        一陣涼意襲來，讓艾斯本睜開了眼。他不覺得自己睡了多久，至少不可能睡到關園的時候，就算真的是這樣，也不可能沒有工作人員來叫醒他。他的視線往下移，看到腳邊有一張紙，撿起來後看到上面的自己想像中還要多，於是就先把紙摺一摺放進口袋當中想著等一下再來當作打發時間看看的娛樂，等到暫時停擺的腦袋終於重新開始運轉，他才發現不對勁的地方。
+      </p>
+
+      <p>
+        為什麼他剛剛有辦法彎下腰撿起那張紙？他的孩子應該要坐在他的腿上才對。
+      </p>
+
+      <p>
+        艾斯本立刻站了起來，然而不論是自己腿上，還是長椅的座位，都沒有孩子的蹤影。
+      </p>
+
+      <p>
+        不行。
+      </p>
+
+      <p>
+        我的孩子。
+      </p>
+
+      <p>
+        我的孩子呢。
+      </p>
+
+      <p>
+        他慌張地看著四周，接著一陣急忙的腳步聲響起，吸引了他的注意力。艾斯本往聲音的來源看去，看到孩子正開心地朝自己跑來。
+      </p>
+
+      <p>
+        「爹地！尼在這裡啊！」
+        那孩子的揮著手，努力用不標準的發音喊著自己的樣子，對艾斯本來說應該是再熟悉不過的光景，但是他的心中卻出現了一絲的不信任與疑惑。即使如此，他還是反射性地伸出手，想要接住跑過來的那孩子。
+        「尼和媽咪都不見惹，害窩找好久。」
+      </p>
+
+      <div class="pause">＊　＊　＊</div>
+
+      <p>
+        不對。
+      </p>
+
+      <div class="pause">＊　＊　＊</div>
+
+      <p>
+        就在那孩子要抱上來的那一刻，艾斯本收回手，往後退了一步，然後看著那孩子就這樣在自己面前跌個狗吃屎。
+      </p>
+
+      <p>
+        不對，他的孩子不會說出那種話。他的妻子，也就是孩子的媽媽，早在幾年前就已經過世了，不可能和他一起出現在這裡。雖然他的孩子還不太懂什麼是死亡，但盡量的不去提到媽媽，已經是他們兩個人之間的默契。
+      </p>
+
+      <p>
+        所以眼前這個毫不猶豫就提起媽媽的人，絕對不是他的孩子。
+      </p>
+
+      <p>
+        「你不是我的孩子。」
+      </p>
+
+      <p>
+        艾斯本說著，然後繼續慢慢的往後退。他的雙手在微微顫抖著，然後抱住了自己的頭。金色的髮絲擠出了指縫，被他揪住。灰色的眼中倒映著那孩子的身影，此時卻像是變作一團自己看不清真面目的黑霧一樣。恐懼和不安佔據了他的思緒，他看著那孩子，輕輕地吐出一句。
+      </p>
+
+      <!-- 觸發點：可將這句話改成自己的關鍵句 -->
+      <p id="trigger">
+        「我的孩子呢？」
+      </p>
+
+      </div>
+    </article>
+  </main>
+
+  <!-- 全螢幕紅字特效 -->
+  <section
+    id="horror"
+    aria-label="異常文字覆蓋畫面"
+    aria-hidden="true"
+  >
+    <div id="words"></div>
+    <button id="close" class="control" type="button">
+      關閉覆蓋效果 ×
+    </button>
+  </section>
+
+  <button id="reopen" type="button">
+    重新觸發異變 ↗
+  </button>
+
+  <script>
+    (() => {
+      const trigger = document.getElementById("trigger");
+      const horror = document.getElementById("horror");
+      const words = document.getElementById("words");
+      const closeButton = document.getElementById("close");
+      const reopenButton = document.getElementById("reopen");
+      const progressBar = document.getElementById("progress-bar");
+      const statusText = document.getElementById("status-text");
+
+      const phrases = [
+        "你不是我的孩子",
+        "你是誰",
+        "我的孩子呢",
+      ];
+
+      const totalWords = 100;
+      const fragments = [];
+      let active = false;
+      let dismissed = false;
+      let hasTriggered = false;
+      let power = 0;
+      let ticking = false;
+
+      // 建立文字碎片，位置在首次載入時固定
+      for (let i = 0; i < totalWords; i++) {
+        const span = document.createElement("span");
+        const phrase = phrases[i % phrases.length];
+
+        span.className = "word";
+        span.textContent = phrase;
+        span.dataset.text = phrase;
+
+        const size = 15 + Math.random() * 48;
+        const x = Math.random() * 112 - 6;
+        const y = Math.random() * 112 - 6;
+        const rotation = Math.random() * 18 - 9;
+
+        span.style.left = `${x}%`;
+        span.style.top = `${y}%`;
+        span.style.fontSize = `${size}px`;
+        span.style.transform = `rotate(${rotation}deg)`;
+        span.style.setProperty(
+          "--word-opacity",
+          `${0.55 + Math.random() * 0.45}`
+        );
+
+        words.appendChild(span);
+        fragments.push(span);
+      }
+
+      function activate() {
+        active = true;
+        dismissed = false;
+        hasTriggered = true;
+
+        horror.classList.add("active");
+        horror.setAttribute("aria-hidden", "false");
+        reopenButton.classList.remove("show");
+        statusText.textContent = "CONTAINMENT FAILED";
+
+        updateEffect();
+      }
+
+      function dismiss() {
+        active = false;
+        dismissed = true;
+
+        horror.classList.remove("active");
+        horror.setAttribute("aria-hidden", "true");
+        reopenButton.classList.add("show");
+        statusText.textContent = "READING MODE";
+
+        // 讓讀者能正常操作頁面與繼續閱讀
+        document.body.style.overflow = "";
+      }
+
+      function updateEffect() {
+        if (!active) return;
+
+        const rect = trigger.getBoundingClientRect();
+        const passed = Math.max(0, -rect.top);
+        const viewport = window.innerHeight;
+
+        // 觸發句進入畫面時即有初始強度，
+        // 越往下捲動，強度越高
+        const rawPower = Math.min(
+          1,
+          0.12 + passed / (viewport * 0.9)
+        );
+
+        power = Math.max(0.12, rawPower);
+        horror.style.setProperty("--power", power.toFixed(3));
+
+        // 由少量文字逐步增加到全部文字
+        const visibleCount = Math.max(
+          8,
+          Math.floor(fragments.length * power)
+        );
+
+        fragments.forEach((fragment, index) => {
+          fragment.classList.toggle(
+            "visible",
+            index < visibleCount
+          );
+        });
+
+        // 深入故事後，觸發句也逐漸被遮蔽
+        trigger.style.color =
+          `rgba(74, 39, 38, ${Math.max(0.08, 1 - power)})`;
+      }
+
+      function onScroll() {
+        const scrollable =
+          document.documentElement.scrollHeight - window.innerHeight;
+
+        const ratio = scrollable > 0
+          ? window.scrollY / scrollable
+          : 0;
+
+        progressBar.style.width =
+          `${Math.min(100, Math.max(0, ratio * 100))}%`;
+
+        if (!hasTriggered && !dismissed) {
+          const rect = trigger.getBoundingClientRect();
+
+          if (rect.top < window.innerHeight * 0.82) {
+            activate();
+          }
+        }
+
+        if (active) {
+          if (!ticking) {
+            window.requestAnimationFrame(() => {
+              updateEffect();
+              ticking = false;
+            });
+            ticking = true;
+          }
+        }
+      }
+
+      closeButton.addEventListener("click", dismiss);
+
+      reopenButton.addEventListener("click", () => {
+        activate();
+      });
+
+      window.addEventListener("scroll", onScroll, {
+        passive: true
+      });
+
+      window.addEventListener("resize", () => {
+        if (active) updateEffect();
+      });
+
+      // 若頁面重新載入時觸發句已在視窗中，照樣觸發
+      onScroll();
+    })();
+  </script>
+</body>
+</html>
