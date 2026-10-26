@@ -6,42 +6,45 @@
 <title>THE SENTENCE</title>
 
 <style>
-:root {
-  --red: #ff1717;
-  --black: #050505;
-}
-
 * {
   box-sizing: border-box;
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
 body {
   margin: 0;
-  background: var(--black);
-  color: #d8d8d8;
-  font-family: "Noto Sans TC", sans-serif;
+  background: #f8f7f4;
+  color: #292929;
+  font-family: "Noto Serif TC", "Songti TC", serif;
 }
 
 .article {
-  max-width: 720px;
-  margin: auto;
-  padding: 12vh 28px 30vh;
-  line-height: 2.2;
-  font-size: 16px;
+  width: min(680px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 70px 0 200px;
 }
 
-.article p {
-  margin: 0 0 2em;
+.eyebrow {
+  font: 11px monospace;
+  letter-spacing: .15em;
+  color: #888;
+}
+
+h1 {
+  font-size: 36px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+p {
+  font-size: 17px;
+  line-height: 2.2;
+  margin: 28px 0;
 }
 
 #trigger {
-  margin: 55vh 0 50vh;
-  font-size: 23px;
-  transition: color .3s;
+  font-size: 17px;
+  line-height: 2.2;
+  margin: 28px 0;
 }
 
 #trigger.activated {
@@ -180,7 +183,7 @@ body {
 <body>
 <main class="article">
 
-  <div class="eyebrow">PERSONAL ARCHIVE / 001</div>
+  <div class="eyebrow">PERSONAL ARCHIVE / 002</div>
 
   <h1>Whose Stage</h1>
   
@@ -348,7 +351,7 @@ body {
   const triggerText =
     "我的孩子呢？";
 
-  const maxWords = 90;
+  const maxWords = 150;
   let activated = false;
   let dismissed = false;
   let lastProgress = -1;
@@ -389,8 +392,8 @@ body {
 
     // 隨捲動逐步顯示更多文字
     const visibleCount = Math.ceil(
-      3 + intensity * (maxWords - 3)
-    );
+  3 + Math.pow(intensity, 0.6) * (maxWords - 3)
+);
 
     items.forEach((item, i) => {
       const el = item.el;
@@ -470,7 +473,7 @@ body {
     );
 
     const progress = Math.min(
-      1, .08 + distance / 900
+      1, .08 + distance / 250
     );
 
     if (Math.abs(progress - lastProgress) > .015) {
