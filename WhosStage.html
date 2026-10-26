@@ -1,422 +1,199 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#f4f0e8">
-  <title>Who's Stage?</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>THE SENTENCE</title>
 
-  <style>
-    :root {
-      --paper: #f4f0e8;
-      --ink: #27231f;
-      --muted: #81786e;
-      --red: #ff102b;
-      --page-width: 680px;
-    }
+<style>
+:root {
+  --red: #ff1717;
+  --black: #050505;
+}
 
-    * {
-      box-sizing: border-box;
-    }
+* {
+  box-sizing: border-box;
+}
 
-    html {
-      scroll-behavior: smooth;
-      background: var(--paper);
-    }
+html {
+  scroll-behavior: smooth;
+}
 
-    body {
-      margin: 0;
-      color: var(--ink);
-      background: var(--paper);
-      font-family:
-        "Noto Serif TC",
-        "Songti TC",
-        "PMingLiU",
-        serif;
-      line-height: 2.2;
-      letter-spacing: 0.045em;
-      transition: background 0.5s ease;
-    }
+body {
+  margin: 0;
+  background: var(--black);
+  color: #d8d8d8;
+  font-family: "Noto Sans TC", sans-serif;
+}
 
-    ::selection {
-      color: white;
-      background: #b51d29;
-    }
+.article {
+  max-width: 720px;
+  margin: auto;
+  padding: 12vh 28px 30vh;
+  line-height: 2.2;
+  font-size: 16px;
+}
 
-    /* 頂部閱讀進度 */
+.article p {
+  margin: 0 0 2em;
+}
 
-    .progress-track {
-      position: fixed;
-      z-index: 20;
-      inset: 0 0 auto;
-      height: 2px;
-      background: transparent;
-    }
+#trigger {
+  margin: 55vh 0 50vh;
+  font-size: 23px;
+  transition: color .3s;
+}
 
-    #progress-bar {
-      width: 0;
-      height: 100%;
-      background: #9f2028;
-      transition: width 0.1s linear;
-    }
+#trigger.activated {
+  color: var(--red);
+  text-shadow: 2px 0 #750000;
+}
 
-    /* 頁首 */
+/* 全畫面特效層 */
+#horror {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  overflow: hidden;
+  background: #050000;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity .35s ease,
+    visibility .35s;
+}
 
-    .masthead {
-      width: min(100% - 48px, var(--page-width));
-      margin: 0 auto;
-      padding: 42px 0 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #d8d0c5;
-      color: var(--muted);
-      font-family: sans-serif;
-      font-size: 10px;
-      letter-spacing: 0.18em;
-    }
+#horror.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
 
-    .masthead .status {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+/* 紅色侵蝕背景 */
+#horror::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background:
+    radial-gradient(
+      ellipse at center,
+      rgba(130, 0, 0, .35),
+      transparent 65%
+    );
+  opacity: var(--intensity, 0);
+  transform: scale(
+    calc(1 + var(--intensity, 0) * .5)
+  );
+  pointer-events: none;
+}
 
-    .status-dot {
-      width: 5px;
-      height: 5px;
-      background: #8b887d;
-      border-radius: 50%;
-    }
+/* 文字容器 */
+#words {
+  position: absolute;
+  inset: -8%;
+  overflow: hidden;
+  transform: scale(
+    calc(1 + var(--intensity, 0) * .13)
+  );
+  transform-origin: center;
+}
 
-    /* 閱讀區 */
+/* 每一塊文字 */
+.word {
+  position: absolute;
+  display: block;
+  max-width: 120vw;
+  color: var(--red);
+  font-weight: 900;
+  line-height: 1.08;
+  white-space: nowrap;
+  user-select: none;
 
-    main {
-      width: min(100% - 48px, var(--page-width));
-      margin: 0 auto;
-    }
+  text-shadow:
+    3px 0 rgba(255, 0, 0, .55),
+    -3px 0 rgba(110, 0, 0, .9);
 
-    .chapter {
-      padding: 90px 0 35px;
-    }
+  transform:
+    translate(
+      var(--dx, 0px),
+      var(--dy, 0px)
+    )
+    rotate(var(--rotate, 0deg));
 
-    .eyebrow {
-      color: #8f332f;
-      font-family: sans-serif;
-      font-size: 10px;
-      letter-spacing: 0.3em;
-    }
+  transition:
+    font-size .25s linear,
+    transform .25s linear,
+    opacity .3s linear;
+}
 
-    h1 {
-      margin: 24px 0 18px;
-      font-size: clamp(30px, 6vw, 46px);
-      line-height: 1.55;
-      font-weight: 500;
-      letter-spacing: 0.1em;
-    }
+/* 靜態故障殘影，不閃爍 */
+.word::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  color: #8f0000;
+  clip-path: inset(45% 0 35% 0);
+  transform: translate(5px, -3px);
+  opacity: .7;
+  pointer-events: none;
+}
 
-    .subtitle {
-      color: var(--muted);
-      font-size: 13px;
-      letter-spacing: 0.12em;
-    }
+#close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 10;
 
-    .divider {
-      width: 30px;
-      height: 1px;
-      margin: 42px 0;
-      background: #9f3934;
-    }
+  padding: 12px 16px;
+  border: 1px solid #ff3333;
+  background: rgba(8, 0, 0, .9);
+  color: #ff4545;
+  font: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+}
 
-    .story p {
-      margin: 0 0 2em;
-      font-size: 16px;
-      line-height: 2.45;
-      text-align: justify;
-      text-indent: 2em;
-    }
+#close:hover {
+  background: #330000;
+}
 
-    .story .no-indent {
-      text-indent: 0;
-    }
+#hint {
+  position: absolute;
+  bottom: 18px;
+  left: 18px;
+  color: #a33;
+  font-size: 12px;
+  letter-spacing: .15em;
+}
 
-    .pause {
-      margin: 70px 0;
-      color: #a59b8e;
-      text-align: center;
-      letter-spacing: 0.7em;
-      font-size: 12px;
-    }
-
-    /* 觸發句 */
-
-    #trigger {
-      position: relative;
-      margin: 110px 0;
-      padding: 26px 20px;
-      border-left: 1px solid #9f3934;
-      color: #4a2726;
-      font-size: 19px;
-      line-height: 2;
-      text-indent: 0;
-      transition: color 0.4s ease;
-    }
-
-    #trigger small {
-      display: block;
-      margin-bottom: 14px;
-      color: #9f3934;
-      font-family: sans-serif;
-      font-size: 9px;
-      letter-spacing: 0.24em;
-    }
-
-    .afterword {
-      padding: 40px 0 120px;
-    }
-
-    .afterword p {
-      color: #595148;
-    }
-
-    footer {
-      padding: 28px 0 50px;
-      border-top: 1px solid #d8d0c5;
-      color: var(--muted);
-      font-family: sans-serif;
-      font-size: 10px;
-      line-height: 1.8;
-      letter-spacing: 0.15em;
-    }
-
-    /* 全螢幕異變層 */
-
-    #horror {
-      --power: 0;
-      position: fixed;
-      z-index: 100;
-      inset: 0;
-      overflow: hidden;
-      isolation: isolate;
-      background: rgba(15, 0, 3, 0);
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      transition:
-        opacity 0.35s ease,
-        visibility 0.35s ease,
-        background 0.3s ease;
-    }
-
-    #horror.active {
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
-      background: rgba(15, 0, 3, calc(var(--power) * 0.96));
-    }
-
-    #horror::before {
-      content: "";
-      position: absolute;
-      z-index: 2;
-      inset: 0;
-      pointer-events: none;
-      opacity: calc(var(--power) * 0.55);
-      background:
-        linear-gradient(
-          0deg,
-          transparent 49%,
-          rgba(255, 0, 35, 0.18) 50%,
-          transparent 51%
-        );
-      background-size: 100% 5px;
-      mix-blend-mode: screen;
-    }
-
-    #horror::after {
-      content: "";
-      position: absolute;
-      z-index: 3;
-      inset: 0;
-      pointer-events: none;
-      opacity: calc(var(--power) * 0.45);
-      background:
-        linear-gradient(
-          90deg,
-          transparent 0%,
-          rgba(255, 0, 30, 0.1) 48%,
-          transparent 52%
-        );
-      transform: translateX(calc(var(--power) * 12px));
-    }
-
-    #words {
-      position: absolute;
-      inset: -8%;
-      overflow: hidden;
-    }
-
-    .word {
-      position: absolute;
-      display: block;
-      max-width: 100vw;
-      color: var(--red);
-      font-family:
-        "Noto Sans TC",
-        "Microsoft JhengHei",
-        sans-serif;
-      font-weight: 900;
-      line-height: 1.15;
-      white-space: nowrap;
-      user-select: none;
-      opacity: 0;
-      text-shadow:
-        2px 0 rgba(255, 0, 0, 0.4),
-        -2px 0 rgba(255, 80, 80, 0.3);
-      transform-origin: center;
-      will-change: opacity, transform;
-    }
-
-    /* 靜態故障殘影，不做閃爍 */
-
-    .word::after {
-      content: attr(data-text);
-      position: absolute;
-      inset: 0;
-      color: #ff8994;
-      clip-path: inset(43% 0 35% 0);
-      transform: translate(
-        calc(var(--power) * 5px),
-        calc(var(--power) * -2px)
-      );
-      opacity: calc(0.2 + var(--power) * 0.65);
-      pointer-events: none;
-    }
-
-    .word.visible {
-      opacity: var(--word-opacity, 0.9);
-    }
-
-    #horror.active .word.visible {
-      text-shadow:
-        calc(var(--power) * 5px) 0 rgba(255, 0, 35, 0.7),
-        calc(var(--power) * -3px) 0 rgba(255, 100, 100, 0.35);
-    }
-
-    /* 操作按鈕 */
-
-    .control {
-      position: absolute;
-      z-index: 10;
-      right: 22px;
-      bottom: 22px;
-      padding: 12px 16px;
-      border: 1px solid rgba(255, 40, 60, 0.55);
-      color: #ff8793;
-      background: rgba(12, 0, 2, 0.85);
-      font-family: sans-serif;
-      font-size: 10px;
-      letter-spacing: 0.16em;
-      cursor: pointer;
-      transition: background 0.2s ease, color 0.2s ease;
-    }
-
-    .control:hover {
-      color: white;
-      background: #9f001b;
-    }
-
-    #reopen {
-      position: fixed;
-      z-index: 50;
-      right: 18px;
-      bottom: 18px;
-      display: none;
-      padding: 11px 14px;
-      border: 1px solid #9f3934;
-      color: #9f3934;
-      background: var(--paper);
-      font-family: sans-serif;
-      font-size: 10px;
-      letter-spacing: 0.12em;
-      cursor: pointer;
-    }
-
-    #reopen.show {
-      display: block;
-    }
-
-    /* 小螢幕 */
-
-    @media (max-width: 600px) {
-      .masthead {
-        width: calc(100% - 36px);
-        padding-top: 28px;
-      }
-
-      main {
-        width: calc(100% - 44px);
-      }
-
-      .chapter {
-        padding-top: 65px;
-      }
-
-      .story p {
-        font-size: 15px;
-        line-height: 2.3;
-      }
-
-      #trigger {
-        margin: 80px 0;
-        padding-left: 16px;
-        font-size: 17px;
-      }
-
-      .control {
-        right: 12px;
-        bottom: 12px;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
-        scroll-behavior: auto !important;
-        transition-duration: 0.01ms !important;
-      }
-    }
-  </style>
+/* 尊重使用者的減少動態偏好 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
+</style>
 </head>
 
 <body>
-  <div class="progress-track" aria-hidden="true">
-    <div id="progress-bar"></div>
-  </div>
+<main class="article">
 
-  <header class="masthead">
-    <span>ARCHIVE NO. 017</span>
-    <span class="status">
-      <span class="status-dot"></span>
-      <span id="status-text">READING MODE</span>
-    </span>
-  </header>
+  <div class="eyebrow">PERSONAL ARCHIVE / 001</div>
 
-  <main>
-    <header class="chapter">
-      <div class="eyebrow">短篇小說・異常紀錄</div>
-      <h1>紅色正在閱讀你</h1>
-      <div class="subtitle">有些文字，不應該被讀完。</div>
-      <div class="divider"></div>
-    </header>
-
-    <article class="story">
-      <p class="no-indent">
+  <h1>Whose Stage</h1>
+  
+      <p>
         「下一個！下一個！把拔，偶要企坐那個！」
+      </p>
+      <p>
         「『我』，還有『去』。」
+      </p>
+      <p>
         「偶！企！」
+      </p>
+      <p>
         「哈哈，這兩個字的發音對你來說還是太難了嗎？」
       </p>
 
@@ -442,16 +219,30 @@
 
       <p>
         「不可以喔，我們約好了，不可以揉眼睛。」
+      </p>
+      <p>
         「但素⋯⋯」
+      </p>
+      <p>
         「沒有但是。」
+      </p>
+      <p>
         「把拔⋯⋯」
+      </p>
+      <p>
         「不行喔，這樣眼睛之後會痛痛，我說過很多次了吧。」
-
       </p>
 
       <p>
+        艾斯本舉起原本壓著孩子的手，然後小心翼翼地撥開了孩子的瀏海，輕輕地點了下孩子的額頭。
+      </p>
+      <p>
         「想睡覺了吧？我們坐下來休息一下吧。」
+      </p>
+      <p>
         「但素還有很多沒有玩到的⋯⋯」
+      </p>
+      <p>
         「遊樂設施不會長腳，而且你要乖乖休息，等等才有力氣繼續玩啊。」
       </p>
 
@@ -459,7 +250,7 @@
         邊說邊抱著孩子，在一旁的長椅坐了下來。艾斯本輕拍著孩子的被，低聲哼著孩子最喜歡的搖籃曲。在熱鬧吵雜的遊樂園裡，他和孩子坐著的那張長椅彷彿變成了另一個世界。艾斯本可以聽到孩子的呼吸聲變得逐漸平穩及規律，而終於得以喘口氣的他，也開始感覺到眼皮變得沉重。一下下也沒關係吧，他心想，然後閉上了眼。
       </p>
 
-      <div class="pause">＊　＊　＊</div>
+      <div class="pause">　＊　</div>
       
       <p>
         一陣涼意襲來，讓艾斯本睜開了眼。他不覺得自己睡了多久，至少不可能睡到關園的時候，就算真的是這樣，也不可能沒有工作人員來叫醒他。他的視線往下移，看到腳邊有一張紙，撿起來後看到上面的自己想像中還要多，於是就先把紙摺一摺放進口袋當中想著等一下再來當作打發時間看看的娛樂，等到暫時停擺的腦袋終於重新開始運轉，他才發現不對勁的地方。
@@ -491,17 +282,21 @@
 
       <p>
         「爹地！尼在這裡啊！」
+      </p>
+      <p>
         那孩子的揮著手，努力用不標準的發音喊著自己的樣子，對艾斯本來說應該是再熟悉不過的光景，但是他的心中卻出現了一絲的不信任與疑惑。即使如此，他還是反射性地伸出手，想要接住跑過來的那孩子。
+      </p>
+      <p>
         「尼和媽咪都不見惹，害窩找好久。」
       </p>
 
-      <div class="pause">＊　＊　＊</div>
+      <div class="pause">　　</div>
 
       <p>
         不對。
       </p>
 
-      <div class="pause">＊　＊　＊</div>
+      <div class="pause">　　</div>
 
       <p>
         就在那孩子要抱上來的那一刻，艾斯本收回手，往後退了一步，然後看著那孩子就這樣在自己面前跌個狗吃屎。
@@ -532,181 +327,174 @@
     </article>
   </main>
 
-  <!-- 全螢幕紅字特效 -->
-  <section
-    id="horror"
-    aria-label="異常文字覆蓋畫面"
-    aria-hidden="true"
-  >
-    <div id="words"></div>
-    <button id="close" class="control" type="button">
-      關閉覆蓋效果 ×
-    </button>
-  </section>
-
-  <button id="reopen" type="button">
-    重新觸發異變 ↗
+ <!-- 滿版特效 -->
+<div id="horror" aria-hidden="true">
+  <div id="words"></div>
+  <button id="close" type="button">
+    關閉效果 ×
   </button>
+  <div id="hint">SCROLL TO DESCEND</div>
+</div>
 
-  <script>
-    (() => {
-      const trigger = document.getElementById("trigger");
-      const horror = document.getElementById("horror");
-      const words = document.getElementById("words");
-      const closeButton = document.getElementById("close");
-      const reopenButton = document.getElementById("reopen");
-      const progressBar = document.getElementById("progress-bar");
-      const statusText = document.getElementById("status-text");
+<script>
+(() => {
+  const trigger = document.getElementById("trigger");
+  const horror = document.getElementById("horror");
+  const words = document.getElementById("words");
+  const close = document.getElementById("close");
+  const hint = document.getElementById("hint");
 
-      const phrases = [
-        "你不是我的孩子",
-        "你是誰",
-        "我的孩子呢",
-      ];
+  // 可自行修改的參數
+  const triggerText =
+    "我的孩子呢？";
 
-      const totalWords = 100;
-      const fragments = [];
-      let active = false;
-      let dismissed = false;
-      let hasTriggered = false;
-      let power = 0;
-      let ticking = false;
+  const maxWords = 90;
+  let activated = false;
+  let dismissed = false;
+  let lastProgress = -1;
 
-      // 建立文字碎片，位置在首次載入時固定
-      for (let i = 0; i < totalWords; i++) {
-        const span = document.createElement("span");
-        const phrase = phrases[i % phrases.length];
+  trigger.textContent = triggerText;
 
-        span.className = "word";
-        span.textContent = phrase;
-        span.dataset.text = phrase;
+  // 建立固定的文字位置，避免每次捲動都重新洗牌
+  const items = [];
 
-        const size = 15 + Math.random() * 48;
-        const x = Math.random() * 112 - 6;
-        const y = Math.random() * 112 - 6;
-        const rotation = Math.random() * 18 - 9;
+  for (let i = 0; i < maxWords; i++) {
+    const el = document.createElement("span");
+    el.className = "word";
+    el.textContent = triggerText;
+    el.dataset.text = triggerText;
 
-        span.style.left = `${x}%`;
-        span.style.top = `${y}%`;
-        span.style.fontSize = `${size}px`;
-        span.style.transform = `rotate(${rotation}deg)`;
-        span.style.setProperty(
-          "--word-opacity",
-          `${0.55 + Math.random() * 0.45}`
-        );
+    const item = {
+      el,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: 12 + Math.random() * 38,
+      rotation: (Math.random() - .5) * 8,
+      dx: (Math.random() - .5) * 30,
+      dy: (Math.random() - .5) * 30
+    };
 
-        words.appendChild(span);
-        fragments.push(span);
-      }
+    words.appendChild(el);
+    items.push(item);
+  }
 
-      function activate() {
-        active = true;
-        dismissed = false;
-        hasTriggered = true;
+  function render(progress) {
+    const intensity = Math.max(
+      0, Math.min(1, progress)
+    );
 
+    horror.style.setProperty(
+      "--intensity", intensity
+    );
+
+    // 隨捲動逐步顯示更多文字
+    const visibleCount = Math.ceil(
+      3 + intensity * (maxWords - 3)
+    );
+
+    items.forEach((item, i) => {
+      const el = item.el;
+      const visible = i < visibleCount;
+
+      el.style.display = visible ? "block" : "none";
+
+      if (!visible) return;
+
+      // 文字越來越大，位置越來越混亂
+      const size = item.size +
+        intensity * (45 + (i % 5) * 15);
+
+      const spread = intensity * 34;
+
+      el.style.left =
+        (item.x - spread * .25) + "%";
+
+      el.style.top =
+        (item.y - spread * .25) + "%";
+
+      el.style.fontSize = size + "px";
+
+      el.style.opacity = Math.min(
+        1, .45 + intensity * .8
+      );
+
+      el.style.setProperty(
+        "--rotate",
+        (item.rotation * (1 + intensity * 2)) + "deg"
+      );
+
+      el.style.setProperty(
+        "--dx",
+        (item.dx * (1 + intensity * 2)) + "px"
+      );
+
+      el.style.setProperty(
+        "--dy",
+        (item.dy * (1 + intensity * 2)) + "px"
+      );
+    });
+
+    // 後期壓迫感加強
+    hint.textContent = intensity > .8
+      ? "THERE IS NO MORE SPACE"
+      : "SCROLL TO DESCEND";
+  }
+
+  // 句子進入畫面後開始
+  const observer = new IntersectionObserver(
+    entries => {
+      if (
+        entries[0].isIntersecting &&
+        !activated &&
+        !dismissed
+      ) {
+        activated = true;
+        trigger.classList.add("activated");
         horror.classList.add("active");
         horror.setAttribute("aria-hidden", "false");
-        reopenButton.classList.remove("show");
-        statusText.textContent = "CONTAINMENT FAILED";
-
-        updateEffect();
+        render(.08);
       }
+    },
+    { threshold: .5 }
+  );
 
-      function dismiss() {
-        active = false;
-        dismissed = true;
+  observer.observe(trigger);
 
-        horror.classList.remove("active");
-        horror.setAttribute("aria-hidden", "true");
-        reopenButton.classList.add("show");
-        statusText.textContent = "READING MODE";
+  // 依照觸發句子後的捲動距離增加強度
+  function onScroll() {
+    if (!activated || dismissed) return;
 
-        // 讓讀者能正常操作頁面與繼續閱讀
-        document.body.style.overflow = "";
-      }
+    const rect = trigger.getBoundingClientRect();
+    const distance = Math.max(
+      0, -rect.bottom
+    );
 
-      function updateEffect() {
-        if (!active) return;
+    const progress = Math.min(
+      1, .08 + distance / 900
+    );
 
-        const rect = trigger.getBoundingClientRect();
-        const passed = Math.max(0, -rect.top);
-        const viewport = window.innerHeight;
+    if (Math.abs(progress - lastProgress) > .015) {
+      lastProgress = progress;
+      render(progress);
+    }
+  }
 
-        // 觸發句進入畫面時即有初始強度，
-        // 越往下捲動，強度越高
-        const rawPower = Math.min(
-          1,
-          0.12 + passed / (viewport * 0.9)
-        );
+  window.addEventListener("scroll", onScroll, {
+    passive: true
+  });
 
-        power = Math.max(0.12, rawPower);
-        horror.style.setProperty("--power", power.toFixed(3));
+  // 手動關閉：停止覆蓋，恢復閱讀
+  close.addEventListener("click", () => {
+    dismissed = true;
+    activated = false;
 
-        // 由少量文字逐步增加到全部文字
-        const visibleCount = Math.max(
-          8,
-          Math.floor(fragments.length * power)
-        );
+    horror.classList.remove("active");
+    horror.setAttribute("aria-hidden", "true");
+    trigger.classList.remove("activated");
+    observer.disconnect();
+  });
+})();
+</script>
 
-        fragments.forEach((fragment, index) => {
-          fragment.classList.toggle(
-            "visible",
-            index < visibleCount
-          );
-        });
-
-        // 深入故事後，觸發句也逐漸被遮蔽
-        trigger.style.color =
-          `rgba(74, 39, 38, ${Math.max(0.08, 1 - power)})`;
-      }
-
-      function onScroll() {
-        const scrollable =
-          document.documentElement.scrollHeight - window.innerHeight;
-
-        const ratio = scrollable > 0
-          ? window.scrollY / scrollable
-          : 0;
-
-        progressBar.style.width =
-          `${Math.min(100, Math.max(0, ratio * 100))}%`;
-
-        if (!hasTriggered && !dismissed) {
-          const rect = trigger.getBoundingClientRect();
-
-          if (rect.top < window.innerHeight * 0.82) {
-            activate();
-          }
-        }
-
-        if (active) {
-          if (!ticking) {
-            window.requestAnimationFrame(() => {
-              updateEffect();
-              ticking = false;
-            });
-            ticking = true;
-          }
-        }
-      }
-
-      closeButton.addEventListener("click", dismiss);
-
-      reopenButton.addEventListener("click", () => {
-        activate();
-      });
-
-      window.addEventListener("scroll", onScroll, {
-        passive: true
-      });
-
-      window.addEventListener("resize", () => {
-        if (active) updateEffect();
-      });
-
-      // 若頁面重新載入時觸發句已在視窗中，照樣觸發
-      onScroll();
-    })();
-  </script>
 </body>
 </html>
