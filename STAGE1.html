@@ -7,7 +7,10 @@
 <title>STAGE 1</title>
 
 <style>
-/* ===== 基本頁面設定 ===== */
+
+/* =================================
+   1. 基本頁面設定
+================================= */
 
 * {
   box-sizing: border-box;
@@ -15,21 +18,26 @@
 
 body {
   margin: 0;
-  background: #f8f7f4;
+  background-color: #f8f7f4;
   color: #292929;
-  font-family: "Noto Serif TC", "Songti TC", serif;
-  transition:
-    background-color 2.5s ease,
-    color 2.5s ease;
-}
 
-/* 文章容器 */
+  font-family: "Noto Serif TC", "Songti TC", serif;
+
+  transition:
+    background-color 1.5s ease,
+    color 1.5s ease;
+}
 
 .article {
-  max-width: 680px;
+  width: min(680px, calc(100% - 40px));
   margin: 0 auto;
-  padding: 80px 24px 200px;
+  padding: 70px 0 200px;
 }
+
+.eyebrow {
+  font: 11px monospace;
+  letter-spacing: .15em;
+  color: #888;
 
 .article p {
   font-size: 17px;
@@ -37,42 +45,69 @@ body {
   margin: 0 0 32px;
 }
 
-.eyebrow {
-  font: 11px monospace;
-  letter-spacing: .15em;
-  color: #888;
-}
-
-
-/* 第二階段：紫色 */
-body.color-stage-2 {
-  background-color: #7c5c94;
-  color: #252326;
-}
-
-/* 第三階段：暗紫灰 */
-body.color-stage-3 {
-  background-color: #514052;
-  color: #d1b9d6;
-}
-
-/* 第四階段：墨綠灰 */
-body.color-stage-4 {
-  background-color: #263b32;
-  color: #8bb99a;
-}
-
-/* 最終階段：深綠色 */
-body.color-stage-5 {
-  background-color: #001709;
-  color: #22d463;
-}
+/* 所有文章文字同步變色 */
 
 .article p,
 .article h1,
 .article h2 {
   transition: color 1.5s ease;
 }
+
+
+/* =================================
+   2. 第一個觸發句子
+   紫色背景
+================================= */
+
+body.color-stage-1 {
+  background-color: #7c5c94;
+  color: #252326;
+}
+
+
+/* =================================
+   3. 第二個觸發句子
+   灰紫色背景
+================================= */
+
+body.color-stage-2 {
+  background-color: #65516f;
+  color: #e0d3e8;
+}
+
+
+/* =================================
+   4. 第一個「哐」
+   暗紫灰背景
+================================= */
+
+body.color-stage-3 {
+  background-color: #514052;
+  color: #d1b9d6;
+}
+
+
+/* =================================
+   5. 第二個「哐」
+   墨綠灰背景
+================================= */
+
+body.color-stage-4 {
+  background-color: #263b32;
+  color: #8bb99a;
+}
+
+
+/* =================================
+   6. 第三個「哐」
+   最終深綠背景
+================================= */
+
+body.color-stage-5 {
+  background-color: #001709;
+  color: #22d463;
+}
+
 
 /* =================================
    7. 觸發句子排版
@@ -85,9 +120,13 @@ body.color-stage-5 {
   margin-bottom: 80px;
 }
 
-/* ===== 手機版調整 ===== */
+
+/* =================================
+   8. 手機版排版
+================================= */
 
 @media (max-width: 600px) {
+
   .article {
     padding: 50px 22px 150px;
   }
@@ -95,7 +134,9 @@ body.color-stage-5 {
   .article p {
     font-size: 16px;
   }
+
 }
+
 </style>
 </head>
 
